@@ -5,27 +5,34 @@ import com.junitMokito.example.junit.mokiito.repo.BookRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class BookService {
     private final BookRepository bookRepository;
-    public void findAllBooks()
-    {
-        bookRepository.findAll();
+
+    public Collection<Books> findAllBooks() {
+        return bookRepository.findAll();
     }
 
-    public Books addBooks(int id, String name)
-    {
+    public void addBooks(int id, String name) {
         Books books = new Books();
         books.setId(id);
         books.setName(name);
-        return bookRepository.save(books);
+        bookRepository.save(books);
     }
 
-    public Optional<Books> getBooksById(int id)
-    {
+    public void replaceBook(int id, String name) {
+        Optional<Books> books = bookRepository.findById(id);
+        if (books.isPresent()) {
+            books.get().setName(name);
+            bookRepository.save(books.get());
+        }
+    }
+
+    public Optional<Books> getBooksById(int id) {
         return bookRepository.findById(id);
     }
 }
