@@ -11,7 +11,9 @@ import javax.persistence.Id;
 @Setter
 @Entity
 @Data
-public class Books {
+
+public class Books
+{
     @Id
     private int id;
     private String name;

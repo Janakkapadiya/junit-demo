@@ -18,6 +18,4 @@ class BookRepositoryTest {
         repository.save(books);
         Assertions.assertTrue(repository.checkIfUserExistById(1));
     }
-
-
 }
