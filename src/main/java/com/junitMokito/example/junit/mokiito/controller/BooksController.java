@@ -23,4 +23,10 @@ public class BooksController {
     public Collection<Books> findAll() {
         return bookService.findAllBooks();
     }
+
+    @PostMapping("/addBooks")
+    public Books addBooks(@RequestBody UserDto user)
+    {
+        return bookService.addBooks(user.getId(), user.getName());
+    }
 }
