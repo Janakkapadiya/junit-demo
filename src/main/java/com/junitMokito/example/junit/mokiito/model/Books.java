@@ -10,8 +10,6 @@ import javax.persistence.Id;
 @Getter
 @Setter
 @Entity
-@Data
-
 public class Books
 {
     @Id
