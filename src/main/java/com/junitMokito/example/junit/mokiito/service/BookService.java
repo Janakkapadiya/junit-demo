@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,16 +16,16 @@ public class BookService {
     private static final Logger logger = LoggerFactory.getLogger(BookService.class);
     private final BookRepository bookRepository;
 
-    public Collection<Books> findAllBooks() {
+    public List<Books> findAllBooks(){
         return bookRepository.findAll();
     }
 
-    public Books addBooks(int id, String name, int price) {
+    public void addBooks(int id, String name,int price){
         Books books = new Books();
         books.setId(id);
         books.setName(name);
         books.setPrice(price);
-        return bookRepository.save(books);
+        bookRepository.save(books);
     }
 
     public Books replaceBook(int id, String name) {
@@ -71,5 +70,18 @@ public class BookService {
         }
 
         return bookRepository.findAll();
+    }
+
+    public int getTheCostOfAllTheBooks(List<Integer> id)
+    {
+        int total = 0;
+        for(int bookId : id)
+        {
+            Optional<Books> book = bookRepository.findById(bookId);
+            if(book.isPresent()) {
+                total += book.get().getPrice();
+            }
+        }
+        return total;
     }
 }
