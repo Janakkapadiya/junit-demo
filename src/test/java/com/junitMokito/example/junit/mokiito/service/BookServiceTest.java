@@ -1,11 +1,11 @@
 package com.junitMokito.example.junit.mokiito.service;
+import com.junitMokito.example.junit.mokiito.dto.BookDto;
 import com.junitMokito.example.junit.mokiito.model.Books;
 import com.junitMokito.example.junit.mokiito.repo.BookRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +17,9 @@ class BookServiceTest {
     private BookRepository bookRepository;
     @InjectMocks
     private BookService bookService;
+
+    @Captor
+    private ArgumentCaptor<Books> argumentCaptor;
 
     @Test
     void findAllBooks(){
@@ -50,8 +53,6 @@ class BookServiceTest {
         Books changeBook = bookService.replaceBook(1, "ravan");
         Assertions.assertNotEquals("abc", changeBook.getName());
     }
-
-
     @Test
     void changeBookName() {
         Books books = new Books();
@@ -109,9 +110,76 @@ class BookServiceTest {
     {
         Books books = new Books(7,"abc",100);
         bookService.addBooks(7,"abc",100);
-        verify(bookRepository,times(1)).save(books);
+        verify(bookRepository,never()).save(books);
+    }
+
+    @Test
+    void TestUpdateBookPrice()
+    {
+        bookService.changePrice(0,600);
+        verifyNoInteractions(bookRepository);
+    }
+
+    @Test
+    void TestUpdateBooksIfThereIsMoreConditions()
+    {
+        Books books = new Books(1,"abc",500);
+        when(bookRepository.findById(1)).thenReturn(Optional.of(books));
+        bookService.changePrice(1,500);
+        verify(bookRepository).findById(1);
+        verify(bookRepository).save(books);
+        verifyNoMoreInteractions(bookRepository);
+    }
+
+    @Test
+    void TestVerifySaveBookWithNoOrder()
+    {
+        Books books = new Books(1,"abc",500);
+        when(bookRepository.findById(1)).thenReturn(Optional.of(books));
+        bookService.changePrice(1,500);
+        InOrder obj = inOrder(bookRepository);
+        obj.verify(bookRepository).findById(1);
+        obj.verify(bookRepository).save(books);
+    }
+
+    @Test
+    void TestVerifySaveBookWithGivenOrderOfTime()
+    {
+        Books books = new Books(1,"abc",500);
+        when(bookRepository.findById(1)).thenReturn(Optional.of(books));
+        bookService.changePrice(1,500);
+        InOrder obj = inOrder(bookRepository);
+        obj.verify(bookRepository,atLeast(1)).findById(1);
+        obj.verify(bookRepository,atLeast(1)).save(books);
+    }
+    @Test
+    void TestFinalAllBooksExceptionHandlingWithNonVoid()
+    {
+        when(bookRepository.findAll()).thenThrow(BookNotFoundException.class);
+        Assertions.assertThrows(BookNotFoundException.class,()->{
+             bookRepository.findAll();
+        });
+    }
+
+    @Test
+    void TestFinalAllBooksExceptionHandlingWithVoid()
+    {
+        Books books = new Books(1,"abc",500);
+        doThrow(BookNotFoundException.class).when(bookRepository).save(books);
+        Assertions.assertThrows(BookNotFoundException.class,() -> bookService.addBooks(1,"abc",500));
+    }
+
+    @Test
+    void TestToCompareTwoBookSaveObject()
+    {
+        BookDto bookDto = new BookDto(1,"abc",500);
+        bookService.addBooks(bookDto.getId(),bookDto.getName(),bookDto.getPrice());
+        verify(bookRepository).save(argumentCaptor.capture());
+        Books books = argumentCaptor.getValue();
+        Assertions.assertEquals("abc",books.getName());
     }
 
 
-    //v - 32
+
+
 }

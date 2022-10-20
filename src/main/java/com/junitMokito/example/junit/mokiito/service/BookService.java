@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+
 @Service
 @RequiredArgsConstructor
 public class BookService {
@@ -17,15 +18,32 @@ public class BookService {
     private final BookRepository bookRepository;
 
     public List<Books> findAllBooks(){
-        return bookRepository.findAll();
+        List<Books> books = null;
+        try {
+            books = bookRepository.findAll();
+        }catch (BookNotFoundException e)
+        {
+            throw new BookNotFoundException();
+        }
+        return books;
     }
 
     public void addBooks(int id, String name,int price){
+        if(price < 500)
+        {
+            return;
+        }
         Books books = new Books();
         books.setId(id);
         books.setName(name);
         books.setPrice(price);
-        bookRepository.save(books);
+        Object obj = null;
+        try {
+         obj  = bookRepository.save(books);
+        }catch (BookNotFoundException e)
+        {
+            throw new BookNotFoundException();
+        }
     }
 
     public Books replaceBook(int id, String name) {
@@ -35,6 +53,20 @@ public class BookService {
             return books.get();
         }else{
             throw new BookNotFoundException();
+        }
+    }
+
+    public void changePrice(int id,int updatedPrice)
+    {
+        if(id <= 0)
+        {
+            return;
+        }
+        Optional<Books> books = bookRepository.findById(id);
+        if(books.isPresent())
+        {
+            books.get().setPrice(updatedPrice);
+            bookRepository.save(books.get());
         }
     }
 
